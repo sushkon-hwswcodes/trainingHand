@@ -40,15 +40,14 @@ using a Franka Panda arm + Wonik Allegro hand in MuJoCo simulation.
 
 ```
 trainingHand/
-├── arm_hand_env.py     ← main environment (ArmHandCube-v0), needs task redesign for pick-and-place
-├── train.py            ← PPO training script, ready to use once env task is updated
-├── example.py          ← quick demo / sanity check
+├── arm_hand_env.py     ← model + scene only; reward/task not yet defined
+├── example.py          ← quick sanity check (loads env, runs a few steps)
 ├── franka_panda/       ← Panda arm MJCF + meshes (from MuJoCo Menagerie)
 └── allegro_hand/       ← Allegro hand MJCF + meshes (from MuJoCo Menagerie)
 ```
 
-The environment currently runs a **cube reorientation** task (placeholder).
-This will be replaced with **pick-and-place** in the next session.
+`train.py` has been removed — training code will be written once the task is fully defined (Phases 2 + 3).
+The environment has placeholder reward logic (cube reorientation) that will be replaced.
 
 ---
 
