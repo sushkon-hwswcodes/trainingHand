@@ -10,8 +10,8 @@ using a Franka Panda arm + Wonik Allegro hand in MuJoCo simulation.
 | # | Phase | Description | Status |
 |---|-------|-------------|--------|
 | 1 | **Simulation setup** | Get a realistic arm + hand model running in MuJoCo | ✅ Done |
-| 2 | **Scene design** | Add tables of varying heights around the arm | 🔲 Next |
-| 3 | **Task definition** | Define pick-and-place task, reward function, reset logic | 🔲 Pending |
+| 2 | **Scene design** | Add tables of varying heights around the arm | ✅ Done |
+| 3 | **Task definition** | Define pick-and-place task, reward function, reset logic | 🔲 Next |
 | 4 | **RL training** | Train PPO policy, tune hyperparameters | 🔲 Pending |
 | 5 | **Evaluation** | Benchmark success rate, generalization across table heights | 🔲 Pending |
 | 6 | **Sim-to-real prep** | Domain randomization, policy distillation (stretch goal) | 🔲 Pending |
@@ -52,19 +52,30 @@ Observation is now just joint positions + velocities (46-dim). Reward returns 0.
 
 ---
 
-## Next Session — Scene Design (Phase 2)
+## Session 4 — Scene Design ✅
+- Added 8 tables at 45° intervals around the arm base, heights 0.22–0.56 m, all within reach
+- Verified workspace envelope: radial reach ~0.90 m, z range −0.34 to +1.22 m
+- `render_workspace.py` renders a 21 s video sweeping all 7 arm joints through full range
 
-**To do:**
-- [ ] Add 2–3 tables of different heights around the arm in `_build_model()`
-- [ ] Decide table layout (positions, heights) relative to the arm base
-- [ ] Place a cube (or multiple objects) on one table as the source
-- [ ] Define a target zone on another table as the goal
-- [ ] Update `reset()` to spawn objects on source table
-- [ ] Rewrite reward function for pick-and-place:
-  - Phase 1: approach object (distance arm → object)
-  - Phase 2: grasp (fingertip contact)
-  - Phase 3: lift and transport (object height + object → target distance)
-  - Phase 4: place (object within target zone, arm releases)
+## Next Session — Task Definition (Phase 3)
+
+**Decisions needed:**
+- [ ] Pick which table is the **source** (object starts here) and which is the **target** (goal)
+- [ ] Fixed source/target pair, or randomized each episode?
+- [ ] What counts as "placed": object center within X cm of target table surface?
+- [ ] Reward shaping strategy (dense vs sparse)
+
+**To implement once decisions are made:**
+- [ ] Add touch sensors back to `_build_model()` (needed to detect grasp)
+- [ ] Add a target-zone marker (semi-transparent box) on the target table
+- [ ] Update `reset()`: spawn object on source table surface with small random offset
+- [ ] Write `_compute_reward()` for pick-and-place:
+  - Phase 1: approach — reward ∝ 1/(1 + dist(palm, object))
+  - Phase 2: grasp — bonus when ≥2 fingertips contact object
+  - Phase 3: lift — reward when object z > source table height + 0.05 m
+  - Phase 4: transport — reward ∝ 1/(1 + dist(object, target_zone))
+  - Phase 5: place — success bonus when object rests on target table
+- [ ] Add `train.py` once reward is defined
 
 ---
 
@@ -73,5 +84,6 @@ Observation is now just joint positions + velocities (46-dim). Reward returns 0.
 - **Model composition**: `MjSpec.attach(hand_spec, prefix="allegro/", site=attachment_site)` — mesh paths resolve relative to each source file automatically
 - **Arm pre-grasp pose**: `[0, -0.1, 0, -2.167, 0, 2.0, 0.785]` → palm at ~[0.505, 0, 0.383], facing down
 - **Joint naming after composition**: arm joints = `joint1`–`joint7`; hand joints = `allegro/ffj0`–`allegro/thj3`
-- **Touch sensors**: added to `hand_spec` before `attach()` call, then prefixed → `allegro/touch_ff_tip` etc.
+- **Touch sensors**: add to `hand_spec` before `attach()` call, then prefixed → `allegro/touch_ff_tip` etc. (removed for now, add back in Phase 3)
+- **Tables**: 8 static bodies added in `_build_model()`, each with a top geom + leg geom; heights 0.22–0.56 m at r ≈ 0.38–0.55 m
 - **Rendering**: EGL headless (`MUJOCO_GL=egl`), cameras use `mjCAMLIGHT_TARGETBODYCOM` mode

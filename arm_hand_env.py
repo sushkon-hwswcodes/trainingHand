@@ -92,12 +92,42 @@ def _build_model() -> mujoco.MjModel:
     floor.type = mujoco.mjtGeom.mjGEOM_PLANE
     floor.pos  = [0, 0, -0.01]
     floor.size = [0, 0, 0.05]
-    floor.rgba = [0.3, 0.35, 0.35, 1]
+    floor.rgba = [0.25, 0.28, 0.28, 1]
 
-    # Placeholder object — will be replaced once task/scene is defined
+    # 8 tables distributed at 45° intervals, all within arm reach (~0.5–0.6 m)
+    # Each entry: (name, x, y, height, half_w, half_d, rgba_top)
+    _TABLES = [
+        ("table_a",  0.55,  0.00, 0.35, 0.20, 0.18, [0.55, 0.35, 0.15, 1]),  #   0° front
+        ("table_b",  0.38,  0.38, 0.48, 0.15, 0.15, [0.70, 0.50, 0.25, 1]),  #  45°
+        ("table_c",  0.00,  0.52, 0.26, 0.22, 0.18, [0.75, 0.60, 0.40, 1]),  #  90° right
+        ("table_d", -0.38,  0.38, 0.52, 0.15, 0.15, [0.45, 0.30, 0.15, 1]),  # 135°
+        ("table_e", -0.55,  0.00, 0.32, 0.18, 0.20, [0.65, 0.55, 0.35, 1]),  # 180° back
+        ("table_f", -0.38, -0.38, 0.42, 0.15, 0.15, [0.80, 0.65, 0.45, 1]),  # 225°
+        ("table_g",  0.00, -0.52, 0.56, 0.18, 0.18, [0.50, 0.38, 0.22, 1]),  # 270° left
+        ("table_h",  0.38, -0.38, 0.22, 0.22, 0.18, [0.60, 0.48, 0.28, 1]),  # 315°
+    ]
+    for name, x, y, h, wx, wy, color in _TABLES:
+        leg_h  = max(h - 0.04, 0.01)
+        body      = wb.add_body()
+        body.name = name
+        body.pos  = [x, y, 0]
+        top        = body.add_geom()
+        top.name   = f"{name}_top"
+        top.type   = mujoco.mjtGeom.mjGEOM_BOX
+        top.pos    = [0, 0, h - 0.02]
+        top.size   = [wx, wy, 0.02]
+        top.rgba   = color
+        leg        = body.add_geom()
+        leg.name   = f"{name}_leg"
+        leg.type   = mujoco.mjtGeom.mjGEOM_BOX
+        leg.pos    = [0, 0, leg_h / 2]
+        leg.size   = [0.04, 0.04, leg_h / 2]
+        leg.rgba   = [color[0] * 0.65, color[1] * 0.65, color[2] * 0.65, 1]
+
+    # Placeholder object — parked on table_a until task is defined
     obj            = wb.add_body()
     obj.name       = "object"
-    obj.pos        = [0.5, 0, 0.05]
+    obj.pos        = [0.55, 0.0, 0.38]   # resting on table_a surface (h=0.35 + 0.025)
     fj             = obj.add_freejoint()
     fj.name        = "object_joint"
     geom           = obj.add_geom()
