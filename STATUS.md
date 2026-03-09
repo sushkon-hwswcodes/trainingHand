@@ -40,14 +40,15 @@ using a Franka Panda arm + Wonik Allegro hand in MuJoCo simulation.
 
 ```
 trainingHand/
-├── arm_hand_env.py     ← model + scene only; reward/task not yet defined
-├── example.py          ← quick sanity check (loads env, runs a few steps)
+├── arm_hand_env.py     ← model + bare env (ArmHand-v0); reward=0, task TBD
+├── example.py          ← sanity check: loads env, steps 100 times, optionally records
 ├── franka_panda/       ← Panda arm MJCF + meshes (from MuJoCo Menagerie)
 └── allegro_hand/       ← Allegro hand MJCF + meshes (from MuJoCo Menagerie)
 ```
 
-`train.py` has been removed — training code will be written once the task is fully defined (Phases 2 + 3).
-The environment has placeholder reward logic (cube reorientation) that will be replaced.
+All task-specific code removed (orientation reward, drop penalty, touch sensors, target quaternion, success threshold).
+Observation is now just joint positions + velocities (46-dim). Reward returns 0.0 as a stub.
+`train.py` and `task.py` will be added once the scene and task are defined (Phases 2 + 3).
 
 ---
 
