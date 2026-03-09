@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+.venv-backups/
+*.egg-info/
+
+# Training outputs
+checkpoints/
+logs/
+
+# Generated media
+*.mp4
+*.png
+
+# Editor
+.vscode/
+.idea/
